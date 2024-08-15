@@ -1,0 +1,16 @@
+{
+  "snakes_3v3": {
+    "class_literal": "SnakeEatBeans",
+    "n_player": 6,
+    "board_width": 100,
+    "board_height": 50,
+    "cell_range": 8,
+    "n_beans": 10,
+    "max_step": 1000,
+    "game_name": "snakes",
+    "is_obs_continuous": false,
+    "is_act_continuous": false,
+    "agent_nums": [3,3],
+    "obs_type": ["dict","dict"]
+  }
+}
