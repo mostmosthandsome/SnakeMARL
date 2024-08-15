@@ -1,2 +1,3 @@
 pymarl/results/**
 .idea/
+__pycache__/
