@@ -88,4 +88,6 @@ class SnakeEnv(MultiAgentEnv):
         obs, rewards, terminal, info = self.snake_env.step(all_action)
         snake_length = [len(self.snake_env.players[i].segments) for i in range(3)]
         all_reward = np.sum(rewards[:3]) + np.max(snake_length) - 3
-        return all_reward,terminal,info
+        #由于info should be int type
+        info_int = {"total_red_score":np.sum(info["score"][:3]),"total_blue_score":np.sum(info["score"][3:]),"max_len_red":np.max(snake_length)}
+        return all_reward,terminal,info_int
