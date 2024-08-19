@@ -89,7 +89,9 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
 
 
     def get_dict_observation(self, current_state, player_id, info_before):
-
+        """
+        这里的player_id = player_id + 2
+        """
         key_info = {1: self.beans_position}
 
         current_snake = self.players[player_id-2]
@@ -265,6 +267,10 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
             self.cur_bean_num += 1
 
     def get_all_observes(self, before_info=''):
+        """
+        返回长度为self.n_player的list，记录了各个player的观测
+        每个智能体的观测是由1 ,2 ,3 ,4 ,5 ,6 ,7 ,board_width ,board_height ,last_direction ,controlled_snake_index组成的字典
+        """
         self.all_observes = []
         for i in range(self.n_player):
             each_obs = self.get_dict_observation(self.current_state, i+2, before_info)
