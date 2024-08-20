@@ -65,6 +65,9 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
         pygame.init()
         self.screen = None
 
+        self.death_punish_ratio = config['rewards']['death_punishment_ratio']
+        self.eat_bean_ratio = config['rewards']['eat_bean_ratio']
+
 
 
     def check_win(self):
@@ -308,7 +311,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
                 snake.change_direction(act)
                 snake.move_and_add(self.snakes_position)
                 if self.be_eaten(snake.headPos):  # @yanxue
-                    snake.snake_reward = 1
+                    snake.snake_reward = self.eat_bean_ratio
                     eat_snakes[i] = 1
                 else:
                     snake.snake_reward = 0
@@ -318,6 +321,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
             re_generatelist = [0] * self.n_player
             for i in range(self.n_player):
                 snake = self.players[i]
+                snake.death_count = 0
                 segment = snake.segments
                 for j in range(len(segment)):
                     x = segment[j][0]
@@ -326,7 +330,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
                         if j == 0:  # 撞头
                             re_generatelist[i] = 1
                         compare_snake = self.players[snake_position[x][y]]
-                        if [x, y] == compare_snake.segments[0]:  # 两头相撞
+                        if [x, y] == compare_snake.segments[0]:  # 另外一只蛇的头撞上了
                             re_generatelist[snake_position[x][y]] = 1
                     else:
                         snake_position[x][y] = i
@@ -334,9 +338,9 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
                 snake = self.players[i]
                 if re_generatelist[i] == 1:
                     if eat_snakes[i] == 1:
-                        snake.snake_reward = self.init_len - len(snake.segments) + 1
+                        snake.snake_reward = self.death_punish_ratio * (self.init_len - len(snake.segments)) + self.eat_bean_ratio
                     else:
-                        snake.snake_reward = self.init_len - len(snake.segments)
+                        snake.snake_reward = self.death_punish_ratio * (self.init_len - len(snake.segments))
                     snake.segments = []
             for i in range(self.n_player):
                 snake = self.players[i]
@@ -480,6 +484,9 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
         return self.encode(actions)
 
     def be_eaten(self, snake_pos):
+        """
+        如果这个位置有豆子返回True，否则返回False
+        """
         for bean in self.beans_position:
             if snake_pos[0] == bean[0] and snake_pos[1] == bean[1]:
                 self.beans_position.remove(bean)

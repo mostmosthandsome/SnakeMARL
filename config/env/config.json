@@ -12,5 +12,12 @@
     "is_act_continuous": false,
     "agent_nums": [3,3],
     "obs_type": ["dict","dict"]
+  },
+  "render": false,
+  "rewards": {
+    "max_len_ratio" : 1.0,
+    "death_punishment_ratio": 1.0,
+    "eat_bean_ratio": 1.0
   }
+
 }
