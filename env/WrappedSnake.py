@@ -59,6 +59,8 @@ class SnakeEnv(MultiAgentEnv):
         avail_direction[self.action_value_to_index[last_dir]] = 0
         return avail_direction
 
+    def close(self):
+        return
 
     def get_obs(self):
         obs = self.snake_env.get_all_observes()
