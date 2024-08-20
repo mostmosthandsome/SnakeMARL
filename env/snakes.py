@@ -37,7 +37,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
             "obs_type": ["dict","dict"]
         }
         '''
-        self.sight_range = 10
+        self.sight_range = 15
         self.terminate_flg = False
         colors = conf.get('colors', [(255, 255, 255), (255, 140, 0)])
         super(SnakeEatBeans, self).__init__(conf, colors)
