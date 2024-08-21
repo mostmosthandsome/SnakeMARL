@@ -1,3 +1,5 @@
 pymarl/results/**
 .idea/
 __pycache__/
+*.pyc
+saved_result
