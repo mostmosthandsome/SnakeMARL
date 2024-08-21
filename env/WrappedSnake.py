@@ -1,10 +1,14 @@
 import sys
 import os
-sys.path.append(os.path.dirname(__file__))
-from snakes import SnakeEatBeans
+from os.path import dirname
+ENV_DIR = dirname(__file__)
+sys.path.append(dirname(ENV_DIR))
+print(f"add {dirname(ENV_DIR)} to system path")
+from env.snakes import SnakeEatBeans
 import numpy as np
-from multiagentenv import MultiAgentEnv
+from env.multiagentenv import MultiAgentEnv
 from submissions.blue import policy as blue_policy
+from submissions.Env_Wrapper import wrap_obs,get_available_agent_actions
 
 class SnakeEnv(MultiAgentEnv):
     """
@@ -46,43 +50,18 @@ class SnakeEnv(MultiAgentEnv):
         能动的方向值为1,不能动的方向值为0
         """
         self.current_obs = self.snake_env.get_all_observes()
-        avail_action = []
-        for i in range(3):
-            avail_action.append(self.get_avail_agent_actions(i))
+        avail_action = [self.get_avail_agent_actions(i) for i in range(3)]
         return avail_action
 
-    def get_avail_agent_actions(self, agent_id):
-        avail_direction = [1,1,1,1]#按顺序排-2,-1,1,2，对应
-        last_dir = self.current_obs[agent_id]['last_direction']
-        if last_dir is None:
-            return avail_direction
-        avail_direction[self.action_value_to_index[last_dir]] = 0
-        return avail_direction
+    def get_avail_agent_actions(self, agent_id):#把它写到controller里面去了，方便上传
+        return get_available_agent_actions(self.current_obs,agent_id)
 
     def close(self):
         return
 
     def get_obs(self):
         obs = self.snake_env.get_all_observes()
-        beans_pos = np.array(obs[0][1]).reshape(-1)
-        board_width = obs[0]['board_width']
-        board_height = obs[0]['board_height']
-        new_obs_list = []
-
-        for i in range(self.n_controlled_player):
-            single_obs = obs[i]
-            snake_head = single_obs[i + 2][0]
-            snake_grid = np.ones([self.sight_range * 2,self.sight_range * 2]) * -1
-            for j in range(self.n_agents):
-                for coordinate in single_obs[j + 2]:
-                    if pow(coordinate[0] - snake_head[0],2) + pow(coordinate[1] - snake_head[1],2) <= self.sight_range * self.sight_range:
-                        snake_grid[coordinate[0] - snake_head[0]][coordinate[1] - snake_head[1]] = j
-            modified_obs = np.concatenate([snake_grid.flatten(),beans_pos])
-            modified_obs = np.concatenate([modified_obs, [board_width, board_height]])
-            for j in range(3):#append allies' head
-                modified_obs = np.concatenate([modified_obs,single_obs[j + 2][0]])
-            new_obs_list.append(modified_obs)
-        return new_obs_list
+        return wrap_obs(obs)
 
     def step(self, actions):
         red_action = [[self.action_index_to_value[actions[i]].tolist()] for i in range(3)]
