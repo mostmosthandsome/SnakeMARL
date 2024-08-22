@@ -1,28 +1,27 @@
 import numpy as np
 
+obs_dim = 150
+
 def wrap_obs(obs):
     """
     used to wrap the obs from origin
     """
     beans_pos = np.array(obs[0][1]).reshape(-1)
-    board_width = obs[0]['board_width']
-    board_height = obs[0]['board_height']
+    board_param = np.array([obs[0]['board_width'],obs[0]['board_height']])
     new_obs_list = []
     for i in range(3):
         single_obs = obs[i]
-        snake_head = single_obs[i + 2][0]
-        snake_grid = np.ones([30, 30]) * -1
+        snake_head = np.array(single_obs[i + 2][0]).reshape(-1)
+        modified_obs =np.concatenate([beans_pos,board_param,snake_head])#24
+        snake_sequence = np.ones([6,10,2]) * -1#120
         for j in range(6):
-            for coordinate in single_obs[j + 2]:
-                if pow(coordinate[0] - snake_head[0], 2) + pow(coordinate[1] - snake_head[1],
-                                                               2) <= 225:
-                    snake_grid[coordinate[0] - snake_head[0]][coordinate[1] - snake_head[1]] = j
-        modified_obs = np.concatenate([snake_grid.flatten(), beans_pos])
-        modified_obs = np.concatenate([modified_obs, [board_width, board_height]])
+            for i in range(min(len(single_obs[j +2]),10)):
+                snake_sequence[j][i] = single_obs[j+2][i]
+        modified_obs = np.concatenate([modified_obs,snake_sequence.reshape(-1)])#144
         for j in range(3):  # append allies' head
             modified_obs = np.concatenate([modified_obs, single_obs[j + 2][0]])
-        new_obs_list.append(modified_obs)
-    return np.array(new_obs_list)
+        new_obs_list.append(modified_obs)#150
+    return np.array(new_obs_list)#450
 
 def get_available_agent_actions(obs, agent_id):
     action_value_to_index = {-2: 0, -1: 1, 1: 2, 2: 3}#将观测中的动作转化成0,1,2,3

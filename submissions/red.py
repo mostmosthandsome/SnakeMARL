@@ -3,9 +3,9 @@ import numpy as np
 import yaml
 import os
 import torch as th
-from .Env_Wrapper import wrap_obs, get_available_agent_actions
+from .Env_Wrapper import wrap_obs, get_available_agent_actions, obs_dim
 
-model_path = "/home/handsome/study/course/year3.0/summer/snakes_v0/snakes/saved_result/models/qmix__2024-08-21_22-01-54/10400"
+model_path = "/home/handsome/study/course/year3.0/summer/snakes_v0/snakes/saved_result/models/qmix__2024-08-22_11-51-57/38400"
 
 
 
@@ -31,7 +31,7 @@ class AgentArgs:#这个类留着最后提交代码的时候改，就不用交def
 class Controller:#基本上是抄的basic_controller
     def __init__(self,model_path):
         self.args = AgentArgs(from_file=True)#提交时改成False，并修改相应参数
-        self.agent = RNNAgent(935, self.args)
+        self.agent = RNNAgent(obs_dim + 7, self.args)
         self.agent.load_state_dict(th.load("{}/agent.th".format(model_path), map_location=lambda storage, loc: storage))
         self.init_hidden(1)
         self.last_action = None
@@ -60,6 +60,7 @@ class Controller:#基本上是抄的basic_controller
         obs = th.cat(inputs, dim=1)
         #改写一下basic_controller的forward函数
         agent_outs, self.hidden_states = self.agent(obs, self.hidden_states)#输出(1,4)维的东西
+        print("agent_out= ",agent_outs)
         #抄自action_selectors的epsilon_greedy
         agent_outs[avail_actions == 0.0] = -float("inf")
         chosen_actions = agent_outs.max(dim=1)[1]

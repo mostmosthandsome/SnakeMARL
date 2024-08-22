@@ -8,7 +8,7 @@ from env.snakes import SnakeEatBeans
 import numpy as np
 from env.multiagentenv import MultiAgentEnv
 from submissions.blue import policy as blue_policy
-from submissions.Env_Wrapper import wrap_obs,get_available_agent_actions
+from submissions.Env_Wrapper import wrap_obs,get_available_agent_actions,obs_dim
 
 class SnakeEnv(MultiAgentEnv):
     """
@@ -21,7 +21,7 @@ class SnakeEnv(MultiAgentEnv):
         self.n_controlled_player = 3
         self.sight_range = self.snake_env.sight_range
         self.n_beans = self.snake_env.n_beans
-        self.obs_dim = self.sight_range * self.sight_range * 4 + self.n_beans * 2 + 2 + self.n_controlled_player * 2
+        self.obs_dim = obs_dim
         self.current_obs = None
         self.action_index_to_value = np.eye(4)
         self.action_value_to_index = {-2:0,-1:1,1:2,2:3}
@@ -30,7 +30,7 @@ class SnakeEnv(MultiAgentEnv):
 
     def get_env_info(self):
         return {
-            "state_shape": 3 * self.obs_dim,
+            "state_shape": 143,
             "obs_shape": self.obs_dim,
             "n_actions": 4,
             "n_agents": self.n_controlled_player,
@@ -38,11 +38,21 @@ class SnakeEnv(MultiAgentEnv):
         }
 
     def reset(self):
+
         self.snake_env.reset(render=self.render)
 
     def get_state(self):
-        return np.array(self.get_obs()[:3]).reshape(-1)
-        # obs = self.snake_env.get_all_observes()
+
+        obs = self.snake_env.get_all_observes()
+        snake_segments = [self.snake_env.players[i].segments for i in range(6)]
+        snake_length = np.array([len(snake_segments[i]) for i in range(3)])#3
+        beans_pos = np.array(obs[0][1]).reshape(-1)#20
+        snake_sequence = np.ones([6, 10, 2]) * -1  # 120
+        for j in range(6):
+            for i in range(min(len(snake_segments[j]),10)):
+                snake_sequence[j][i] = snake_segments[j][i]
+        state = np.concatenate([snake_length,beans_pos,snake_sequence.reshape(-1)]) #143
+        return state
 
     #
     def get_avail_actions(self):
