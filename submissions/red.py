@@ -5,7 +5,7 @@ import os
 import torch as th
 from .Env_Wrapper import wrap_obs, get_available_agent_actions, obs_dim
 
-model_path = "/home/handsome/study/course/year3.0/summer/snakes_v0/snakes/saved_result/models/qmix__2024-08-22_11-51-57/38400"
+model_path = "/home/handsome/study/course/year3.0/summer/snakes_v0/snakes/saved_result/models/qmix__2024-08-22_15-34-12/22010"
 
 
 

@@ -30,7 +30,7 @@ alg_type: "qmix"
 
 # --- RL hyperparameters ---
 gamma: 0.95
-batch_size: 5 # Number of episodes to train on
+batch_size: 10 # Number of episodes to train on
 buffer_size: 32 # Size of the replay buffer
 lr: 0.001 # Learning rate for agents
 critic_lr: 0.0005 # Learning rate for critics

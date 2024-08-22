@@ -23,8 +23,8 @@ class RNNAgent(nn.Module):
         self.fc1 = nn.Linear(input_shape, args.net_arch[0])#从输入到mlp的第一个维度，用来做跳跃连接
         self.activate_fn1 = activate_fn()
         self.encoder_mlp = nn.Sequential(*encoder)
-        self.rnn = nn.GRUCell(lst_layer_dim + args.net_arch[0], hidden_size=args.rnn_hidden_dim)
-        self.fc2 = nn.Linear(args.rnn_hidden_dim, args.n_actions)
+        self.rnn = nn.GRUCell(lst_layer_dim , hidden_size=args.rnn_hidden_dim)
+        self.fc2 = nn.Linear(args.rnn_hidden_dim + args.net_arch[0], args.n_actions)
 
     def init_hidden(self):
         # make hidden states on same device and type as model
@@ -34,6 +34,6 @@ class RNNAgent(nn.Module):
         x0 = self.activate_fn1(self.fc1(inputs))
         x = self.encoder_mlp(x0)
         h_in = hidden_state.reshape(-1, self.args.rnn_hidden_dim)
-        h = self.rnn(torch.concatenate([x,x0],dim=1), h_in)
-        q = self.fc2(h)
+        h = self.rnn(x, h_in)
+        q = self.fc2(torch.concatenate([h,x0],dim=1))
         return q, h

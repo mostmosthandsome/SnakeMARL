@@ -47,14 +47,14 @@ class QMixer(nn.Module):
         b1 = self.hyper_b_1(states)
         w1 = w1.view(-1, self.n_agents, self.embed_dim)
         b1 = b1.view(-1, 1, self.embed_dim)
-        hidden = F.elu(th.bmm(agent_qs, w1) + b1)#(B,1,emb_dim)
+        hidden = F.elu(th.bmm(agent_qs, w1) / 100 + b1)#(B,1,emb_dim)
         # Second layer
         w_final = th.abs(self.hyper_w_final(states))
         w_final = w_final.view(-1, self.embed_dim, 1)
         # State-dependent bias
         v = self.V(states).view(-1, 1, 1)
         # Compute final output
-        y = th.bmm(hidden, w_final) + v
+        y = th.bmm(hidden, w_final) / 100 + v
         # Reshape and return
         q_tot = y.view(bs, -1, 1)
         return q_tot
