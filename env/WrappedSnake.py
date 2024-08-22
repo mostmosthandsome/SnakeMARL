@@ -70,7 +70,7 @@ class SnakeEnv(MultiAgentEnv):
         return
 
     def get_obs(self):
-        obs = self.snake_env.get_all_observes()
+        obs = self.snake_env.get_all_observes(self.snake_env.before_info)
         return wrap_obs(obs)
 
     def step(self, actions):

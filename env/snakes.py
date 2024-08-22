@@ -53,6 +53,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
         self.cur_bean_num = 0
         self.beans_position = []
         self.nearest_distance = [-1 for _ in range(8)]
+        self.before_info = ''
 
         # 1<= init_len <= 3
         self.init_len = 3
@@ -73,7 +74,9 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
         self.distance_radio = config['rewards']['distance_radio']
 
     def check_win(self):
-        flg = self.won.index(max(self.won)) + 2
+        snake_length = [len(self.players[i].segments) for i in range(6)]
+        print("蛇的最终长度为",snake_length)
+        flg = self.won.index(max(self.won))
         return flg
 
     def get_grid_observation(self, current_state, player_id, info_before):

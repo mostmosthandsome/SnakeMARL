@@ -5,7 +5,7 @@ import os
 import torch as th
 from .Env_Wrapper import wrap_obs, get_available_agent_actions, obs_dim
 
-model_path = "/home/handsome/study/course/year3.0/summer/snakes_v0/snakes/saved_result/models/qmix__2024-08-22_15-34-12/22010"
+model_path = "/home/handsome/study/course/year3.0/summer/snakes_v0/snakes/saved_result/models/qmix__2024-08-22_19-08-35/42000"
 
 
 
@@ -59,7 +59,9 @@ class Controller:#基本上是抄的basic_controller
             inputs.append(self.agent_index)
         obs = th.cat(inputs, dim=1)
         #改写一下basic_controller的forward函数
+        last_hidden_state = self.hidden_states
         agent_outs, self.hidden_states = self.agent(obs, self.hidden_states)#输出(1,4)维的东西
+        print("hidden state change:",(self.hidden_states - last_hidden_state).mean())
         print("agent_out= ",agent_outs)
         #抄自action_selectors的epsilon_greedy
         agent_outs[avail_actions == 0.0] = -float("inf")

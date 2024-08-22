@@ -29,7 +29,7 @@ def main():
 
         all_actions = action_red + action_blue
 
-        next_obs, reward, terminal, info = env.step(all_actions)
+        obs, reward, terminal, info = env.step(all_actions)
 
 
 
