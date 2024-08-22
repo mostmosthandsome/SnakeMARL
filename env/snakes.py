@@ -18,7 +18,7 @@ import os
 
 
 class SnakeEatBeans(GridGame, GridObservation, DictObservation):
-    def __init__(self,config:dict):
+    def __init__(self, config: dict):
         conf = config['snakes_3v3']
 
         '''
@@ -52,12 +52,15 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
         self.players = []
         self.cur_bean_num = 0
         self.beans_position = []
+        self.nearest_distance = [-1 for _ in range(8)]
+
         # 1<= init_len <= 3
         self.init_len = 3
         self.current_state = self.init_state()
         self.all_observes = self.get_all_observes()
         if self.n_player * self.init_len > self.board_height * self.board_width:
-            raise Exception("玩家数量过多：%d，超出board范围：%d，%d" % (self.n_player, self.board_width, self.board_height))
+            raise Exception(
+                "玩家数量过多：%d，超出board范围：%d，%d" % (self.n_player, self.board_width, self.board_height))
 
         self.input_dimension = self.board_width * self.board_height
         self.action_dim = self.get_action_dim()
@@ -67,8 +70,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
 
         self.death_punish_ratio = config['rewards']['death_punishment_ratio']
         self.eat_bean_ratio = config['rewards']['eat_bean_ratio']
-
-
+        self.distance_radio = config['rewards']['distance_radio']
 
     def check_win(self):
         flg = self.won.index(max(self.won)) + 2
@@ -76,7 +78,6 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
 
     def get_grid_observation(self, current_state, player_id, info_before):
         return current_state
-    
 
     def can_see(self, snake, dest_snake):
 
@@ -89,26 +90,24 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
                     break
         return target_seg
 
-
-
     def get_dict_observation(self, current_state, player_id, info_before):
         """
         这里的player_id = player_id + 2
         """
         key_info = {1: self.beans_position}
 
-        current_snake = self.players[player_id-2]
+        current_snake = self.players[player_id - 2]
 
-        if player_id in [2,3,4]:
+        if player_id in [2, 3, 4]:
 
             for i in range(self.n_player):
-                if i in [0,1,2]:
+                if i in [0, 1, 2]:
                     snake = self.players[i]
                     key_info[snake.player_id] = snake.segments
                 else:
                     snake = self.players[i]
                     target_seg = self.can_see(current_snake.segments, snake.segments)
-                    
+
                     key_info[snake.player_id] = target_seg
 
             # key_info['state_map'] = current_state
@@ -117,16 +116,16 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
             key_info['last_direction'] = info_before.get('directions')[:3] if isinstance(info_before, dict) else None
             key_info['controlled_snake_index'] = player_id
 
-        elif player_id in [5,6,7]:
+        elif player_id in [5, 6, 7]:
             for i in range(self.n_player):
-                
-                if i in [3,4,5]:
+
+                if i in [3, 4, 5]:
                     snake = self.players[i]
                     key_info[snake.player_id] = snake.segments
                 else:
                     snake = self.players[i]
                     target_seg = self.can_see(current_snake.segments, snake.segments)
-                    
+
                     key_info[snake.player_id] = target_seg
             # key_info['state_map'] = current_state
             key_info['board_width'] = self.board_width
@@ -160,7 +159,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
                 pass
 
         return self.all_observes
-    
+
     def step(self, actions, render=False):
         all_obs, info_after = self.get_next_state(actions)
         rewards = self.get_reward(actions)
@@ -178,6 +177,31 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
 
         return all_obs, rewards, self.is_terminal(), info_after
 
+    def calculate_wrap_distance(self, pos1, pos2):
+        dx = abs(pos1[0] - pos2[0])
+        dy = abs(pos1[1] - pos2[1])
+        dx = min(dx, self.board_width - dx)
+        dy = min(dy, self.board_height - dy)
+        return dx + dy
+
+    def get_nearest_bean_distance(self, snake_head):
+        min_distance = float('inf')
+        for bean in self.beans_position:
+            distance = self.calculate_wrap_distance(snake_head, bean)
+            if distance < min_distance:
+                min_distance = distance
+        return min_distance
+
+    def calculate_distance_reward(self, snake):
+        distance = self.get_nearest_bean_distance(snake.headPos)
+        diff_distance = self.nearest_distance[snake.player_id] - distance
+        if self.nearest_distance[snake.player_id] == -1:
+            self.nearest_distance[snake.player_id] = distance
+            return 0
+        else:
+            self.nearest_distance[snake.player_id] = distance
+            return diff_distance
+
     def init_state(self):
         for i in range(self.n_player):
             s = Snake(i + 2, self.board_width, self.board_height, self.init_len)
@@ -188,7 +212,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
                 else:
                     origin_hit = 0
                 cur_head = s.move_and_add(self.snakes_position)
-                cur_hit = self.is_hit(cur_head, self.snakes_position) or self.is_hit(cur_head, {i:s.segments[1:]})
+                cur_hit = self.is_hit(cur_head, self.snakes_position) or self.is_hit(cur_head, {i: s.segments[1:]})
                 if origin_hit or cur_hit:
                     x = random.randrange(0, self.board_height)
                     y = random.randrange(0, self.board_width)
@@ -276,11 +300,10 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
         """
         self.all_observes = []
         for i in range(self.n_player):
-            each_obs = self.get_dict_observation(self.current_state, i+2, before_info)
+            each_obs = self.get_dict_observation(self.current_state, i + 2, before_info)
             self.all_observes.append(each_obs)
 
         return self.all_observes
-    
 
     def get_global_state(self):
 
@@ -288,14 +311,12 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
         for i in range(self.n_player):
             snake = self.players[i]
             key_info[snake.player_id] = snake.segments
-            
+
         key_info['board_width'] = self.board_width
         key_info['board_height'] = self.board_height
         key_info['last_direction'] = self.before_info.get('directions') if isinstance(self.before_info, dict) else None
 
-        
         return key_info
-
 
     def get_next_state(self, all_action):
         self.before_info = self.step_before_info()
@@ -310,11 +331,15 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
                 # print(snake.player_id, "此轮的动作为：", self.actions_name[act])
                 snake.change_direction(act)
                 snake.move_and_add(self.snakes_position)
+
+                distance_reward = self.calculate_distance_reward(snake)
+                distance_reward = self.distance_radio * distance_reward
+
                 if self.be_eaten(snake.headPos):  # @yanxue
-                    snake.snake_reward = self.eat_bean_ratio
+                    snake.snake_reward = self.eat_bean_ratio + distance_reward
                     eat_snakes[i] = 1
                 else:
-                    snake.snake_reward = 0
+                    snake.snake_reward = distance_reward
                     snake.pop()
                 # print(snake.player_id, snake.segments)   # @yanxue
             snake_position = [[-1] * self.board_width for _ in range(self.board_height)]
@@ -338,7 +363,8 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
                 snake = self.players[i]
                 if re_generatelist[i] == 1:
                     if eat_snakes[i] == 1:
-                        snake.snake_reward = self.death_punish_ratio * (self.init_len - len(snake.segments)) + self.eat_bean_ratio
+                        snake.snake_reward = self.death_punish_ratio * (
+                                    self.init_len - len(snake.segments)) + self.eat_bean_ratio
                     else:
                         snake.snake_reward = self.death_punish_ratio * (self.init_len - len(snake.segments))
                     snake.segments = []
@@ -362,7 +388,8 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
                 s = self.players[i]
                 self.won[i] = s.score
             info_after = {}
-            info_after["snakes_position"] = [list(v) for k, v in sorted(self.snakes_position.items(), key=lambda item: item[0])]
+            info_after["snakes_position"] = [list(v) for k, v in
+                                             sorted(self.snakes_position.items(), key=lambda item: item[0])]
             info_after["beans_position"] = list(self.beans_position)
             info_after["hit"] = re_generatelist
             info_after["score"] = self.won
@@ -526,7 +553,8 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
     def render_board(self):
         extra_info = [tuple(x.headPos) for x in self.players]
         im_data = np.array(
-            SnakeEatBeans._render_board(self.get_render_data(self.current_state), self.grid, self.colors, self.grid_unit, self.grid_unit_fix,
+            SnakeEatBeans._render_board(self.get_render_data(self.current_state), self.grid, self.colors,
+                                        self.grid_unit, self.grid_unit_fix,
                                         extra_info))
         self.game_tape.append(im_data)
         return im_data

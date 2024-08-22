@@ -16,8 +16,9 @@
   "render": false,
   "rewards": {
     "max_len_ratio" : 1.0,
-    "death_punishment_ratio": 1.0,
-    "eat_bean_ratio": 1.0
+    "death_punishment_ratio": 2.0,
+    "eat_bean_ratio": 5.0,
+    "distance_radio": 0.1
   }
 
 }

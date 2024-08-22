@@ -79,9 +79,11 @@ class SnakeEnv(MultiAgentEnv):
         all_action = red_action + blue_action
         obs, rewards, terminal, info = self.snake_env.step(all_action)
         #把关于死亡惩罚和吃豆子奖励写在snake-env里了，所以这里不用修改
+
         snake_length = [len(self.snake_env.players[i].segments) for i in range(3)]
         max_length = np.max(snake_length)
         all_reward = np.sum(rewards[:3]) + self.max_len_ratio * (max_length - 3)
+        snake_heads = obs[0]
         #由于info should be int type
         info_int = {"total_red_score":np.sum(info["score"][:3]),"total_blue_score":np.sum(info["score"][3:]),"max_len_red":np.max(snake_length)}
 
