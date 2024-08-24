@@ -7,20 +7,26 @@ def wrap_obs(obs):
     used to wrap the obs from origin
     """
     beans_pos = np.array(obs[0][1])
-    board_param = np.array([obs[0]['board_width'],obs[0]['board_height']])
+    board_param = np.array([obs[0]['board_height'],obs[0]['board_width']])
     new_obs_list = []
     for i in range(3):
         single_obs = obs[i]
         snake_head = np.array(single_obs[i + 2][0])
-
-        modified_obs =np.concatenate([(beans_pos - snake_head).reshape(-1),board_param])#22
+        beans_pos_reference_to_snake = np.stack([
+            (beans_pos[:,0] - snake_head[0] + board_param[0]) % board_param[0],
+            (beans_pos[:,1] - snake_head[1] + board_param[1]) % board_param[1],
+        ],axis=1)
+        modified_obs =np.concatenate([beans_pos_reference_to_snake.reshape(-1),board_param])#22
         snake_sequence = np.ones([6,10,2]) * 100#120
         for j in range(6):
             for i in range(min(len(single_obs[j +2]),10)):
-                snake_sequence[j][i] = single_obs[j+2][i] - snake_head
+                #这个对应的是蛇向下和向右距离对应蛇的距离
+                snake_sequence[j][i][0] = (single_obs[j+2][i][0] - snake_head[0] + board_param[0]) % board_param[0]
+                snake_sequence[j][i][1] = (single_obs[j+2][i][1] - snake_head[1] + board_param[1]) % board_param[1]
         modified_obs = np.concatenate([modified_obs,snake_sequence.reshape(-1)])#142
         for j in range(3):  # append allies' head
-            modified_obs = np.concatenate([modified_obs, single_obs[j + 2][0] - snake_head])
+            ally_head_pos = np.array([(single_obs[j + 2][0][0] - snake_head[0] + board_param[0]) % board_param[0],(single_obs[j + 2][0][1] - snake_head[1] + board_param[1])% board_param[1]])
+            modified_obs = np.concatenate([modified_obs, ally_head_pos.reshape(-1)])
         new_obs_list.append(modified_obs)#148
     return np.array(new_obs_list)#450
 

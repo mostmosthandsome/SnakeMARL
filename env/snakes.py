@@ -196,7 +196,7 @@ class SnakeEatBeans(GridGame, GridObservation, DictObservation):
         return min_distance
 
     def calculate_distance_reward(self, snake):
-        distance = self.get_nearest_bean_distance(snake.headPos)
+        distance = self.get_nearest_bean_distance(snake.headPos)#获取距离最近的豆子的距离
         diff_distance = self.nearest_distance[snake.player_id] - distance
         if self.nearest_distance[snake.player_id] == -1:
             self.nearest_distance[snake.player_id] = distance
